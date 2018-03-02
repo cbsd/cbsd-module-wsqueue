@@ -1,7 +1,7 @@
 #!/usr/local/bin/cbsd
 #v11.0.9
 MYARG=""
-MYOPTARG="cbsd_queue_name id cmd status data_status ip4_addr node astart protected jname host_hostname vm_ram vm_cpus vm_os_type vm_vnc_port interface hidden"
+MYOPTARG="cbsd_queue_name id cmd status data_status ip4_addr node astart protected jname host_hostname vm_ram vm_cpus vm_os_type vm_vnc_port interface hidden vnc_port msg"
 MYDESC="Send message to CBSD queue"
 ADDHELP="cbsd_queue_name - queue name, e.g: cbsd_queue_name=/clonos/jailscontainers/\n\
 cmd=refresh,update,jcreate,jclone,jrename...\n"
@@ -13,6 +13,16 @@ CBSDMODULE="jail"
 . ${tools}
 . ${workdir}/universe.subr
 
+
+# for msg-type, notes:
+# timeout:1000   - show 1 seconds before hide
+# timeout:0 (or absent timeout) - show forever
+# + bgcolor:
+#  type:alert
+#  type:warning
+#  type:error
+#  type: information
+#  type:success
 
 cbsd_queue_name=
 id=
@@ -29,6 +39,7 @@ host_hostname=
 vm_os_type=
 vm_cpus=
 vm_vnc_port=
+vnc_port=
 interface=
 
 init $*
@@ -38,6 +49,10 @@ init $*
 case "${cmd}" in
 	refresh)
 		message="{\"cmd\":\"refresh\"}"
+		/usr/jails/modules/cbsd_queue.d/wsclonos-sendqueue -ws_url=ws://127.0.0.1:8023${cbsd_queue_name} -message="${message}" > /dev/null 2>&1
+		;;
+	message)
+		message=$( echo ${msg} | /usr/bin/tr '#' ' ' )
 		/usr/jails/modules/cbsd_queue.d/wsclonos-sendqueue -ws_url=ws://127.0.0.1:8023${cbsd_queue_name} -message="${message}" > /dev/null 2>&1
 		;;
 	*)
@@ -57,7 +72,23 @@ case "${cmd}" in
 		[ -n "${vm_ram}" ] && data="${data},\"vm_ram\":\"${vm_ram}\""
 		[ -n "${vm_os_type}" ] && data="${data},\"vm_os_type\":\"${vm_os_type}\""
 		[ -n "${vm_cpus}" ] && data="${data},\"vm_cpus\":\"${vm_cpus}\""
-		[ -n "${vm_vnc_port}" ] && data="${data},\"vm_vnc_port\":\"${vm_vnc_port}\""
+
+		if [ -n "${vm_vnc_port}" ]; then
+			if [ "${vm_vnc_port}" = "0" ]; then
+				data="${data},\"vm_vnc_port\":\" \""
+			else
+				data="${data},\"vm_vnc_port\":\"${vm_vnc_port}\""
+			fi
+		fi
+
+		if [ -n "${vnc_port}" ]; then
+			if [ "${vnc_port}" = "0" ]; then
+				data="${data},\"vnc_port\":\" \""
+			else
+				data="${data},\"vnc_port\":\"${vnc_port}\""
+			fi
+		fi
+
 		[ -n "${interface}" ] && data="${data},\"interface\":\"${interface}\""
 
 		# end data field, close }
