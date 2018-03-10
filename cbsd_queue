@@ -1,7 +1,7 @@
 #!/usr/local/bin/cbsd
 #v11.0.9
 MYARG=""
-MYOPTARG="cbsd_queue_name id cmd status data_status ip4_addr node astart protected jname host_hostname vm_ram vm_cpus vm_os_type vm_vnc_port interface hidden vnc_port msg"
+MYOPTARG="cbsd_queue_name id cmd status data_status ip4_addr node astart protected jname host_hostname vm_ram vm_cpus vm_os_type vm_vnc_port interface hidden vnc_port msg impsize"
 MYDESC="Send message to CBSD queue"
 ADDHELP="cbsd_queue_name - queue name, e.g: cbsd_queue_name=/clonos/jailscontainers/\n\
 cmd=refresh,update,jcreate,jclone,jrename...\n"
@@ -41,8 +41,10 @@ vm_cpus=
 vm_vnc_port=
 vnc_port=
 interface=
+impsize=
 
 init $*
+
 
 [ -z "${cbsd_queue_name}" ] && exit 0
 
@@ -72,6 +74,7 @@ case "${cmd}" in
 		[ -n "${vm_ram}" ] && data="${data},\"vm_ram\":\"${vm_ram}\""
 		[ -n "${vm_os_type}" ] && data="${data},\"vm_os_type\":\"${vm_os_type}\""
 		[ -n "${vm_cpus}" ] && data="${data},\"vm_cpus\":\"${vm_cpus}\""
+		[ -n "${impsize}" ] && data="${data},\"impsize\":\"${impsize}\""
 
 		if [ -n "${vm_vnc_port}" ]; then
 			if [ "${vm_vnc_port}" = "0" ]; then
